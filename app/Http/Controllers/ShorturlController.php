@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Shorturl;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class ShorturlController extends Controller
@@ -33,20 +34,29 @@ class ShorturlController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
-     */ 
+     */
     public function store(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'url' => 'required|url'
+        ]);
+        if (!$validator->validate()) {
+            return response()->json([
+                'status' => 'fail',
+                'errors' => $validator->errors()
+            ]);
+        }
+
         $url = $request->post('url');
+
         $slug = Str::slug(Str::random(8));
-        Shorturl::updateOrCreate(
-            [
-                'url' => $url
-            ],
-            [
-                'slug' => $slug,
-            ]
-        );
+        $shorturl = new Shorturl;
+        $shorturl->url = $url;
+        $shorturl->slug = $slug;
+        $shorturl->save();
+
         return response()->json([
+            'status' => 'success',
             'url' => $url,
             'shorturl' => url("/shorturl/$slug")
         ]);
@@ -60,7 +70,15 @@ class ShorturlController extends Controller
      */
     public function show($slug)
     {
-        //
+        /* find slug and redirect */
+        $shorturl = Shorturl::getDataBySlug($slug);
+        if (!$shorturl) {
+            return response()->json([
+                'status' => 'fail',
+                'error' => 'undefined url data'
+            ]);
+        }
+        return redirect()->to($shorturl->url);
     }
 
     /**

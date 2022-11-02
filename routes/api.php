@@ -20,6 +20,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::prefix('/shorturl')->group(function () {
-    Route::post('/', [ShorturlController::class, 'store']);
     Route::get('/{slug}',[ShorturlController::class, 'show']);
+    Route::post('/', [ShorturlController::class, 'store']);
 });
