@@ -1,11 +1,8 @@
 <?php
 
-use App\Models\Shorturl;
-use Carbon\Carbon;
+use App\Http\Controllers\ShorturlController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Str;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,23 +20,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::prefix('/shorturl')->group(function () {
-    Route::get('/shorturl/{slug}',function ($slug,Request $request){
-
-    });
-    Route::post('/', function (Request $request) {
-        $url = $request->post('url');
-        $slug = url('/' . Str::slug(Str::random(8)));
-        Shorturl::updateOrCreate(
-            [
-                'url' => $url
-            ],
-            [
-                'slug' => $slug,
-            ]
-        );
-        return response()->json([
-            'url' => $url,
-            'shorturl' => $slug
-        ]);
-    });
+    Route::post('/', [ShorturlController::class, 'store']);
+    Route::get('/{slug}',[ShorturlController::class, 'show']);
 });
