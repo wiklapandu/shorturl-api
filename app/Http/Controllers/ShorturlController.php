@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Shorturl;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -20,16 +21,6 @@ class ShorturlController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -40,7 +31,7 @@ class ShorturlController extends Controller
         $validator = Validator::make($request->all(), [
             'url' => 'required|url'
         ]);
-        if (!$validator->validate()) {
+        if ($validator->fails()) {
             return response()->json([
                 'status' => 'fail',
                 'errors' => $validator->errors()
@@ -55,11 +46,12 @@ class ShorturlController extends Controller
         $shorturl->slug = $slug;
         $shorturl->save();
 
+        $theShorturl = DB::table('shorturls')->where(['url' => $url, 'slug' => $slug])->get()->first();
+        $theShorturl->slug = url("/api/shorturl/$theShorturl->slug");
         return response()->json([
             'status' => 'success',
-            'url' => $url,
-            'shorturl' => url("/shorturl/$slug")
-        ]);
+            'shorturl' => $theShorturl
+        ], 201);
     }
 
     /**
@@ -76,20 +68,9 @@ class ShorturlController extends Controller
             return response()->json([
                 'status' => 'fail',
                 'error' => 'undefined url data'
-            ]);
+            ], 400);
         }
         return redirect()->to($shorturl->url);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
     }
 
     /**
@@ -102,6 +83,31 @@ class ShorturlController extends Controller
     public function update(Request $request, $id)
     {
         //
+        $validator = Validator::make($request->all(), [
+            'url' => 'required|url'
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'fail',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $url = $request->post('url');
+        $slug = Str::slug(Str::random(8));
+
+        $shorturl = Shorturl::find($id);
+        $shorturl->url = $url;
+        $shorturl->slug = $slug;
+        $shorturl->save();
+
+        $theShorturl = DB::table('shorturls')->where(['url' => $url, 'slug' => $slug])->get()->first();
+        $theShorturl->slug = url("/api/shorturl/$theShorturl->slug");
+
+        return response()->json([
+            'status' => 'success',
+            'shorturl' => $theShorturl
+        ], 201);
     }
 
     /**
@@ -113,5 +119,19 @@ class ShorturlController extends Controller
     public function destroy($id)
     {
         //
+        $shorturl = Shorturl::find($id);
+
+        if (!$shorturl) {
+            return response()->json([
+                'status' => 'error',
+                'error' => 'shorturl not found'
+            ], 400);
+        }
+
+        $shorturl->delete();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'shorturl has been deleted'
+        ], 201);
     }
 }
