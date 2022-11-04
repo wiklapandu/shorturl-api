@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -49,8 +48,8 @@ class AuthController extends Controller
                 )->get()->first(),
                 'expired_at' => Carbon::now()->setSecond(15)
             ],
-            'test',
-            'HS256'
+            env('JWT_SECRET', 'test'),
+            env('JWT_ALGO', 'HS256')
         );
 
         return response()->json([
@@ -90,10 +89,14 @@ class AuthController extends Controller
         }
 
         $theUser = $user->get(['id', 'name', 'email', 'created_at', 'updated_at'])->first();
-        $token = JWT::encode([
-            'user' => $theUser,
-            'expired_at' => Carbon::now()->addDays(1)->getTimestamp()
-        ], 'test', 'HS256');
+        $token = JWT::encode(
+            [
+                'user' => $theUser,
+                'expired_at' => Carbon::now()->addDays(1)->getTimestamp()
+            ],
+            env('JWT_SECRET', 'test'),
+            env('JWT_ALGO', 'HS256')
+        );
 
         return response()->json([
             'status' => 'success',
