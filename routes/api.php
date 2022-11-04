@@ -27,5 +27,6 @@ Route::prefix('/auth')->group(function () {
 Route::prefix('/shorturl')->middleware('token')->group(function () {
     Route::post('/', [ShorturlController::class, 'store']);
     Route::put('/{id}', [ShorturlController::class, 'update']);
+    Route::delete('/{id}',[ShorturlController::class, 'destroy']);
     Route::get('/{slug}', [ShorturlController::class, 'show']);
 });
