@@ -34,6 +34,7 @@ class ShorturlController extends Controller
         $shorturl = new Shorturl;
         $shorturl->url = $url;
         $shorturl->slug = $slug;
+        $shorturl->user_id = $request->user->id;
         $shorturl->save();
 
         $theShorturl = DB::table('shorturls')->where(['url' => $url, 'slug' => $slug])->get()->first();
@@ -50,10 +51,10 @@ class ShorturlController extends Controller
      * @param  string  $slug
      * @return \Illuminate\Http\Response
      */
-    public function show($slug)
+    public function show($slug, Request $request)
     {
         /* find slug and redirect */
-        $shorturl = Shorturl::getDataBySlug($slug);
+        $shorturl = Shorturl::getDataBySlug($slug, ['user_id' => $request->user->id]);
         if (!$shorturl) {
             return response()->json([
                 'status' => 'fail',
@@ -72,7 +73,6 @@ class ShorturlController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
         $validator = Validator::make($request->all(), [
             'url' => 'required|url'
         ]);
@@ -89,6 +89,7 @@ class ShorturlController extends Controller
         $shorturl = Shorturl::find($id);
         $shorturl->url = $url;
         $shorturl->slug = $slug;
+        $shorturl->user_id = $request->user->id;
         $shorturl->save();
 
         $theShorturl = DB::table('shorturls')->where(['url' => $url, 'slug' => $slug])->get()->first();
@@ -108,7 +109,6 @@ class ShorturlController extends Controller
      */
     public function destroy($id)
     {
-        //
         $shorturl = Shorturl::find($id);
 
         if (!$shorturl) {

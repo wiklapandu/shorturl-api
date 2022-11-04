@@ -13,9 +13,13 @@ class Shorturl extends Model
     protected $primaryKey = 'id';
     protected $guarded = [];
 
-    public static function getDataBySlug($slug)
+    public static function getDataBySlug($slug, $where = [])
     {
-        $slug = DB::table('shorturls')->where(['slug' => $slug]);
+        $data = [
+            'slug' => $slug,
+            ...$where
+        ];
+        $slug = DB::table('shorturls')->where($data);
         return $slug->get()->first();
     }
 }
